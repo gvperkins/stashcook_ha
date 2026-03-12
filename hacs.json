@@ -1,0 +1,7 @@
+{
+  "name": "Stashcook",
+  "content_in_root": false,
+  "domains": ["stashcook"],
+  "country": "ALL",
+  "render_readme": true
+}

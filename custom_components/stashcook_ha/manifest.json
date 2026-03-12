@@ -2,12 +2,10 @@
   "domain": "stashcook",
   "name": "Stashcook",
   "version": "0.1.0",
-  "documentation": "https://example.com/",
-  "issue_tracker": "https://example.com/issues",
+  "documentation": "https://github.com/gvperkins/stashcook_ha",
+  "issue_tracker": "https://github.com/gvperkins/stashcook_ha/issues",
   "integration_type": "hub",
   "iot_class": "cloud_polling",
-  "codeowners": [
-    "@you"
-  ],
+  "codeowners": ["@gvperkins"],
   "requirements": []
 }
