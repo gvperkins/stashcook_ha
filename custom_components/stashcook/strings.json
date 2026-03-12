@@ -1,0 +1,17 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to Stashcook",
+        "description": "Enter your Stashcook refresh token. The integration will refresh access automatically.",
+        "data": {
+          "refresh_token": "Refresh Token",
+          "update_interval": "Update interval (minutes)"
+        }
+      }
+    },
+    "error": {
+      "invalid_token": "Could not validate the refresh token."
+    }
+  }
+}
