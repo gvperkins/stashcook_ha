@@ -23,6 +23,10 @@ class StashcookClient:
     async def _session(self) -> ClientSession:
         return self.hass.helpers.aiohttp_client.async_get_clientsession()
 
+    async def _attach_cookie(self, session: ClientSession, name: str, value: str) -> None:
+        # Ensure cookies are set for api.stashcook.com so aiohttp sends them
+        session.cookie_jar.update_cookies({name: value}, response_url="https://api.stashcook.com/")
+
     async def async_refresh_access_token(self) -> Tuple[str, float]:
         session = await self._session()
         headers = {
@@ -32,8 +36,8 @@ class StashcookClient:
             "Referer": REFERER,
             "User-Agent": "HomeAssistant-Stashcook",
         }
-        cookies = {"refreshToken": self.refresh_token}
-        async with session.put(f"{API_BASE}/session", headers=headers, cookies=cookies) as resp:
+        await self._attach_cookie(session, "refreshToken", self.refresh_token)
+        async with session.put(f"{API_BASE}/session", headers=headers) as resp:
             if resp.status != 200:
                 text = await resp.text()
                 raise Exception(f"Refresh failed: {resp.status} {text}")
@@ -70,13 +74,15 @@ class StashcookClient:
             "Referer": REFERER,
             "User-Agent": "HomeAssistant-Stashcook",
         }
-        cookies = {"accessToken": access, "refreshToken": self.refresh_token}
+        await self._attach_cookie(session, "refreshToken", self.refresh_token)
+        await self._attach_cookie(session, "accessToken", access)
         params = {"start": start_date, "end": end_date}
-        async with session.get(f"{API_BASE}/meals", headers=headers, cookies=cookies, params=params) as resp:
+        async with session.get(f"{API_BASE}/meals", headers=headers, params=params) as resp:
             if resp.status == 401:
                 await self.async_refresh_access_token()
-                cookies["accessToken"] = self._access_token
-                async with session.get(f"{API_BASE}/meals", headers=headers, cookies=cookies, params=params) as resp2:
+                await self._attach_cookie(session, "refreshToken", self.refresh_token)
+                await self._attach_cookie(session, "accessToken", self._access_token or "")
+                async with session.get(f"{API_BASE}/meals", headers=headers, params=params) as resp2:
                     if resp2.status != 200:
                         raise Exception(f"Meals fetch failed: {resp2.status} {await resp2.text()}")
                     return await resp2.json()
@@ -96,14 +102,14 @@ class StashcookCoordinator(DataUpdateCoordinator):
         )
 
     async def _async_update_data(self) -> Dict[str, Any]:
+        from datetime import timedelta as td
         try:
             now = dt_util.now()
             today = now.date()
-            tomorrow = (now + timedelta(days=1)).date()
-
+            tomorrow = (now + td(days=1)).date()
             monday_delta = today.weekday()
-            monday = today - timedelta(days=monday_delta)
-            sunday = monday + timedelta(days=6)
+            monday = today - td(days=monday_delta)
+            sunday = monday + td(days=6)
 
             today_str = today.isoformat()
             tomorrow_str = tomorrow.isoformat()
