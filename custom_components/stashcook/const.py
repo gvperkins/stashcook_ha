@@ -8,6 +8,7 @@ CONF_CALENDAR = "calendar_entity"
 DEFAULT_UPDATE_INTERVAL = 30  # minutes
 DEFAULT_CALENDAR = "calendar.family"
 RECIPE_CACHE_HOURS = 12
+DAYS_BACK = 7  # last week too, so a dashboard can step back through it
 DAYS_AHEAD = 14  # Monday of this week + 13 days, so the weekend can show next week
 
 API_BASE = "https://api.stashcook.com"

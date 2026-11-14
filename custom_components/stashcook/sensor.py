@@ -94,25 +94,41 @@ class MealSensor(_Base):
 
 
 class WeekSensor(_Base):
-    """Every day from Monday of this week for 14 days, with full meal detail.
+    """Last week, this week and next week (21 days from last Monday), with full meal
+    detail and each day's prep lines.
 
     The state is the number of planner meals Monday to Sunday of this week.
     """
 
-    _unrecorded_attributes = frozenset({"days", "start", "today"})
+    _unrecorded_attributes = frozenset({"days", "start", "today", "monday"})
 
     def __init__(self, coordinator: StashcookCoordinator) -> None:
         super().__init__(coordinator, "week", "Stashcook week", "mdi:calendar-week")
 
     @property
     def native_value(self) -> int:
-        days = (self.coordinator.data or {}).get("days", [])[:7]
-        return sum(1 for d in days for m in d["meals"].values() if m.get("planned"))
+        data = self.coordinator.data or {}
+        monday = data.get("monday")
+        if not monday:
+            return 0
+        sunday = (date.fromisoformat(monday) + timedelta(days=6)).isoformat()
+        return sum(
+            1
+            for d in data.get("days", [])
+            if monday <= d["date"] <= sunday
+            for m in d["meals"].values()
+            if m.get("planned")
+        )
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         data = self.coordinator.data or {}
-        return {"today": data.get("today"), "start": data.get("start"), "days": data.get("days", [])}
+        return {
+            "today": data.get("today"),
+            "start": data.get("start"),
+            "monday": data.get("monday"),
+            "days": data.get("days", []),
+        }
 
 
 class PrepSensor(_Base):

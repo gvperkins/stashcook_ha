@@ -1,6 +1,6 @@
 # Stashcook for Home Assistant
 
-**Version:** 0.2.0
+**Version:** 0.2.1
 
 Pulls your **Stashcook** meal plan into Home Assistant: today's and tomorrow's meals by slot, full recipe detail (image, times, servings, ingredients, method, source) and a two-week list for dashboards. Optionally merges the matching meal-plan calendar event ("Family Dinner - X", "Lunch - X", "Lunch Prep - X") so meals without a Stashcook recipe still get ingredients, method and reminders.
 
@@ -28,7 +28,7 @@ The token is stored in the config entry, never in YAML. If Stashcook rotates it,
 |---|---|---|
 | `sensor.stashcook_today_dinner`, `_today_lunch`, `_today_lunch_prep`, `_today_breakfast` | Meal title or `Nothing planned` | Full meal (see below); `entity_picture` is the Stashcook image |
 | `sensor.stashcook_tomorrow_dinner`, `_tomorrow_lunch`, `_tomorrow_lunch_prep`, `_tomorrow_breakfast` | as above | as above |
-| `sensor.stashcook_week` | Planner meals Mon–Sun this week | `today`, `start` (Monday), `days`: 14 days of `{date, weekday, meals: {slot: meal}}` |
+| `sensor.stashcook_week` | Planner meals Mon–Sun this week | `today`, `monday` (this week), `start` (last Monday), `days`: 21 days (last, this and next week) of `{date, weekday, meals: {slot: meal}, prep: [lines]}` |
 | `sensor.stashcook_prep_reminders` | Number of lines | `lines`: "Tonight:" notes from today's events, "the night before" jobs from tomorrow's, and "Lunch prep today" on prep days |
 
 Meal attributes: `key`, `date`, `slot`, `title`, `source` (`stashcook` / `calendar`), `planned`, `recipe_id`, `url`, `image`, `image_large`, `prep_minutes`, `cook_minutes`, `total_minutes`, `servings`, `source_name`, `source_url`, `headline` (first bold line of the event), `badge` (Quick / Make ahead / Roast / Leftovers), `note`, `intro`, `ingredients` (`[{text, header}]`), `method` (list of steps), `extras` (`[{label, text}]`, e.g. Tonight, Reheat), `split` (per-person lunches on office days), `has_calendar`.
