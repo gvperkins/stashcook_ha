@@ -18,6 +18,7 @@ from .const import (
     CONF_REFRESH_TOKEN,
     CONF_UPDATE_INTERVAL,
     DAYS_AHEAD,
+    DAYS_BACK,
     DEFAULT_CALENDAR,
     DEFAULT_UPDATE_INTERVAL,
     DOMAIN,
@@ -95,8 +96,9 @@ class StashcookCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     async def _async_update_data(self) -> dict[str, Any]:
         today = dt_util.now().date()
-        start = today - timedelta(days=today.weekday())
-        end = start + timedelta(days=DAYS_AHEAD - 1)
+        monday = today - timedelta(days=today.weekday())
+        start = monday - timedelta(days=DAYS_BACK)
+        end = monday + timedelta(days=DAYS_AHEAD - 1)
         try:
             meals = await self.client.async_get_meals(start.isoformat(), end.isoformat())
         except StashcookAuthError as err:
@@ -122,7 +124,7 @@ class StashcookCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             planner.setdefault((meal.get("date", "")[:10], slot), meal)
 
         days: list[dict[str, Any]] = []
-        for offset in range(DAYS_AHEAD):
+        for offset in range(DAYS_BACK + DAYS_AHEAD):
             day = start + timedelta(days=offset)
             iso = day.isoformat()
             slots: dict[str, Any] = {}
@@ -132,9 +134,14 @@ class StashcookCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     slots[slot] = meal
             days.append({"date": iso, "weekday": day.strftime("%a"), "meals": slots})
 
+        # Every day carries its own prep lines, so a dashboard can show any day.
+        for day in days:
+            day["prep"] = self._prep_lines(days, date.fromisoformat(day["date"]))
+
         return {
             "today": today.isoformat(),
             "start": start.isoformat(),
+            "monday": monday.isoformat(),
             "days": days,
             "prep": self._prep_lines(days, today),
         }
