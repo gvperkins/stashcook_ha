@@ -1,53 +1,46 @@
-# Stashcook — Home Assistant Custom Integration
+# Stashcook for Home Assistant
 
-**Version:** 0.1.2  
-**Updated:** 2026-03-12
+**Version:** 0.2.0
 
-This integration pulls your meal plan from **Stashcook** and exposes sensors in **Home Assistant**. It supports automatic token refresh using your **refreshToken** (no manual cookie updates). When no meal is planned for today, the title sensor reports **"Nothing Planned Today"**.
+Pulls your **Stashcook** meal plan into Home Assistant: today's and tomorrow's meals by slot, full recipe detail (image, times, servings, ingredients, method, source) and a two-week list for dashboards. Optionally merges the matching meal-plan calendar event ("Family Dinner - X", "Lunch - X", "Lunch Prep - X") so meals without a Stashcook recipe still get ingredients, method and reminders.
 
-## Features
-- UI setup (Config Flow) — paste your `refreshToken` once
-- Auto refresh via `PUT /session`
-- Fetches **today**, **tomorrow**, and **current week (Mon–Sun)**
-- Sensors (verbose names):
-  - `sensor.stashcook_meal_today_title`
-  - `sensor.stashcook_meal_today_image`
-  - `sensor.stashcook_meal_today_url`
-  - `sensor.stashcook_meal_today_notes`
-  - `sensor.stashcook_meal_tomorrow_title`
-  - `sensor.stashcook_meal_tomorrow_image`
-  - `sensor.stashcook_meal_tomorrow_url`
-  - `sensor.stashcook_meal_tomorrow_notes`
-  - `sensor.stashcook_meals_week_count` (attributes include the raw weekly list)
+Requires Home Assistant 2025.1 or newer.
 
-## Install (Manual)
-1. Copy the `custom_components/stashcook` folder into your HA `/config/custom_components/` directory.
-2. Restart Home Assistant.
-3. Go to **Settings → Devices & Services → Add Integration** and search for **Stashcook**.
-4. Paste your `refreshToken` (encoded, exactly as in the cookie).
-5. Choose an update interval (default: 60 minutes).
+## Install
 
-## HACS Install (Custom Repository)
-1. In HACS → Integrations → **Custom repositories**, add `https://github.com/gvperkins/stashcook_ha` with category **Integration**.
+### HACS (custom repository)
+1. HACS → Integrations → ⋮ → **Custom repositories** → add `https://github.com/gvperkins/stashcook_ha` (category **Integration**).
 2. Install **Stashcook** and restart Home Assistant.
-3. Add the integration from Devices & Services.
 
-## Lovelace Example
-```yaml
-type: picture-entity
-entity: sensor.stashcook_meal_today_title
-image: "{ states('sensor.stashcook_meal_today_image') }"
-name: "{ states('sensor.stashcook_meal_today_title') }"
-show_state: true
-```
+### Manual
+Copy `custom_components/stashcook` into `/config/custom_components/` and restart.
 
-## How it Works
-- The integration calls `PUT https://api.stashcook.com/session` with your `refreshToken` **cookie** to get an `accessToken` and expiry.
-- Then it calls `GET https://api.stashcook.com/meals?start=YYYY-MM-DD&end=YYYY-MM-DD` with both cookies.
-- If a request returns `401`, it refreshes the access token and retries once.
+## Set up
+1. In app.stashcook.com open DevTools → **Application** → **Cookies** and copy the `refreshToken` value. (A HAR export will not contain it; browsers strip cookies from HARs.)
+2. **Settings → Devices & Services → Add Integration → Stashcook**, paste the token.
+3. Optionally pick the meal-plan calendar (default `calendar.family`) and the update interval (default 30 minutes).
 
-## Troubleshooting
-- **Invalid token** during setup: Ensure the token is the **encoded** cookie value (contains `%2F`, `%3D%3D`).
-- **No meal today**: Title sensor shows *Nothing Planned Today* when empty.
-- **Image not showing**: Use the image sensor value in your card.
-- **HACS version issues**: Create a GitHub **release tag** (e.g., `v0.1.2`).
+The token is stored in the config entry, never in YAML. If Stashcook rotates it, the integration saves the new one. If it is rejected, HA asks you to re-authenticate.
+
+## Sensors
+
+| Entity | State | Attributes |
+|---|---|---|
+| `sensor.stashcook_today_dinner`, `_today_lunch`, `_today_lunch_prep`, `_today_breakfast` | Meal title or `Nothing planned` | Full meal (see below); `entity_picture` is the Stashcook image |
+| `sensor.stashcook_tomorrow_dinner`, `_tomorrow_lunch`, `_tomorrow_lunch_prep`, `_tomorrow_breakfast` | as above | as above |
+| `sensor.stashcook_week` | Planner meals Mon–Sun this week | `today`, `start` (Monday), `days`: 14 days of `{date, weekday, meals: {slot: meal}}` |
+| `sensor.stashcook_prep_reminders` | Number of lines | `lines`: "Tonight:" notes from today's events, "the night before" jobs from tomorrow's, and "Lunch prep today" on prep days |
+
+Meal attributes: `key`, `date`, `slot`, `title`, `source` (`stashcook` / `calendar`), `planned`, `recipe_id`, `url`, `image`, `image_large`, `prep_minutes`, `cook_minutes`, `total_minutes`, `servings`, `source_name`, `source_url`, `headline` (first bold line of the event), `badge` (Quick / Make ahead / Roast / Leftovers), `note`, `intro`, `ingredients` (`[{text, header}]`), `method` (list of steps), `extras` (`[{label, text}]`, e.g. Tonight, Reheat), `split` (per-person lunches on office days), `has_calendar`.
+
+Large attributes are excluded from the recorder.
+
+Where both exist, the calendar's ingredients and method win (they describe what was actually bought); the Stashcook recipe fills any gaps and supplies the image, times and source.
+
+## Upgrading from 0.1.x
+- The old `stashcook_meal_today_*`, `stashcook_meal_tomorrow_*` and `stashcook_meals_week_count` sensors are replaced by the sensors above.
+- The duplicate `custom_components/stashcook_ha` folder is gone; only `custom_components/stashcook` is installed.
+- 0.1.x does not load on recent Home Assistant (it used the removed `hass.helpers`), so there is normally nothing to migrate.
+
+## Development
+Parser tests need only Python: `python tests/test_parser.py`.

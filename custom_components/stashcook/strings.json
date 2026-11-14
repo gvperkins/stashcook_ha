@@ -3,15 +3,39 @@
     "step": {
       "user": {
         "title": "Connect to Stashcook",
-        "description": "Enter your Stashcook refresh token. The integration will refresh access automatically.",
+        "description": "Paste the refreshToken cookie from app.stashcook.com (DevTools, Application, Cookies). The integration refreshes access automatically.",
         "data": {
-          "refresh_token": "Refresh Token",
-          "update_interval": "Update interval (minutes)"
+          "refresh_token": "Refresh token",
+          "update_interval": "Update interval (minutes)",
+          "calendar_entity": "Meal-plan calendar (merges Diane's event descriptions)"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Stashcook token expired",
+        "description": "Paste a fresh refreshToken cookie from app.stashcook.com.",
+        "data": {
+          "refresh_token": "Refresh token"
         }
       }
     },
     "error": {
-      "invalid_token": "Could not validate the refresh token."
+      "invalid_token": "Stashcook rejected the refresh token.",
+      "cannot_connect": "Could not reach Stashcook. Check the Home Assistant log."
+    },
+    "abort": {
+      "already_configured": "Stashcook is already set up.",
+      "reauth_successful": "Token updated."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Stashcook options",
+        "data": {
+          "update_interval": "Update interval (minutes)",
+          "calendar_entity": "Meal-plan calendar (merges Diane's event descriptions)"
+        }
+      }
     }
   }
 }

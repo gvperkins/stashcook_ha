@@ -1,22 +1,25 @@
-
+"""Constants for the Stashcook integration."""
 DOMAIN = "stashcook"
+
 CONF_REFRESH_TOKEN = "refresh_token"
 CONF_UPDATE_INTERVAL = "update_interval"
-DEFAULT_UPDATE_INTERVAL = 60  # minutes
+CONF_CALENDAR = "calendar_entity"
+
+DEFAULT_UPDATE_INTERVAL = 30  # minutes
+DEFAULT_CALENDAR = "calendar.family"
+RECIPE_CACHE_HOURS = 12
+DAYS_AHEAD = 14  # Monday of this week + 13 days, so the weekend can show next week
 
 API_BASE = "https://api.stashcook.com"
 API_VERSION = "2025.01.06"
 ORIGIN = "https://app.stashcook.com"
 REFERER = "https://app.stashcook.com/"
+APP_RECIPE_URL = "https://app.stashcook.com/recipe/{id}"
+RECIPE_EXPAND = "Ingredients,Method,Notes"
 
-SENSOR_TODAY_TITLE = "stashcook_meal_today_title"
-SENSOR_TODAY_IMAGE = "stashcook_meal_today_image"
-SENSOR_TODAY_URL = "stashcook_meal_today_url"
-SENSOR_TODAY_NOTES = "stashcook_meal_today_notes"
+TAG_DINNER = "27778bbb-9c13-4d9c-81c3-ad7053d35209"
+TAG_LUNCH = "1ecea98f-5f42-43e8-b824-fa6f0bf33a09"
+TAG_BREAKFAST = "24520f28-37fa-4cb0-b207-1a0eb01e2506"
+TAG_SLOTS = {TAG_DINNER: "dinner", TAG_LUNCH: "lunch", TAG_BREAKFAST: "breakfast"}
 
-SENSOR_TOMORROW_TITLE = "stashcook_meal_tomorrow_title"
-SENSOR_TOMORROW_IMAGE = "stashcook_meal_tomorrow_image"
-SENSOR_TOMORROW_URL = "stashcook_meal_tomorrow_url"
-SENSOR_TOMORROW_NOTES = "stashcook_meal_tomorrow_notes"
-
-SENSOR_WEEK_COUNT = "stashcook_meals_week_count"
+SLOTS = ("breakfast", "lunch_prep", "lunch", "dinner")
